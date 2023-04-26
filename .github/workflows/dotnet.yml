@@ -31,7 +31,7 @@ jobs:
       # Initialize for CD
       - name: Create NuGet package
         if: github.event_name == 'push' && matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release'
-        run: dotnet pack --no-build -o __out__
+        run: dotnet pack --configuration ${{ matrix.configuration }} --no-build -o __out__
       - name: Upload build artifact
         if: github.event_name == 'push' && matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release'
         uses: actions/upload-artifact@v3
