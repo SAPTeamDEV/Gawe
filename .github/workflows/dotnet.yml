@@ -2,6 +2,10 @@ name: Gawe for .NET
 
 on:
   workflow_call:
+    secrets:
+      USER_TOKEN:
+        description: Github user token
+        required: true
 
 jobs:
   dotnet:
