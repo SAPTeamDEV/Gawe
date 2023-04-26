@@ -2,22 +2,16 @@ name: Gawe for .NET
 
 on:
   workflow_call:
-    inputs:
-      os:
-        description: Operating System
-        type: string
-        required: true
-        default: ubuntu-latest
-      configuration:
-        description: dotnet build configuration
-        type: string
-        required: true
-        default: Release
 
 jobs:
   build:
-    name: Build ${{ inputs.configuration }} on ${{ inputs.os }}
-    runs-on: ${{ inputs.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        configuration: [Debug, Release]
+
+    name: Build ${{ matrix.configuration }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v3
@@ -31,9 +25,9 @@ jobs:
       - name: Install dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build --configuration ${{ inputs.configuration }} --no-restore
+        run: dotnet build --configuration ${{ matrix.configuration }} --no-restore
       - name: Test
-        run: dotnet test --configuration ${{ inputs.configuration }} --no-restore --verbosity normal
+        run: dotnet test --configuration ${{ matrix.configuration }} --no-restore --verbosity normal
         
   dependabot:
     needs: build
