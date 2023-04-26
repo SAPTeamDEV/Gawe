@@ -28,11 +28,12 @@ jobs:
         run: dotnet build --configuration ${{ matrix.configuration }} --no-restore
       - name: Test
         run: dotnet test --configuration ${{ matrix.configuration }} --no-restore --verbosity normal
+      # Initialize for CD
       - name: Create NuGet package
-        if: github.event_name == 'push' && matrix.os == 'ubuntu-latest'
-        run: dotnet pack -o __out__
+        if: github.event_name == 'push' && matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release'
+        run: dotnet pack --no-build -o __out__
       - name: Upload build artifact
-        if: github.event_name == 'push' && matrix.os == 'ubuntu-latest'
+        if: github.event_name == 'push' && matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release'
         uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.repository.name }}-${{ github.sha }}
@@ -40,12 +41,13 @@ jobs:
             __out__/*.*nupkg
         
   dependabot:
+    name: Auto-merge pull requests
     needs: [dotnet]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+    if: github.event_name == 'pull_request' && (github.actor == github.repository_owner || github.actor == 'dependabot[bot]')
     env:
       PR_URL: ${{github.event.pull_request.html_url}}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Automatically merge the Dependabot PRs
+      - name: Automatically merge the trusted PR from ${{ github.actor }}
         run: gh pr merge --auto -r "$PR_URL"
