@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-  build:
+  dotnet:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
@@ -30,7 +30,7 @@ jobs:
         run: dotnet test --configuration ${{ matrix.configuration }} --no-restore --verbosity normal
         
   dependabot:
-    needs: build
+    needs: [dotnet]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
     env:
