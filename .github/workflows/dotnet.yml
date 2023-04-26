@@ -40,7 +40,7 @@ jobs:
           path: |
             __out__/*.*nupkg
         
-  dependabot:
+  merge:
     name: Auto-merge pull requests
     needs: [dotnet]
     runs-on: ubuntu-latest
@@ -58,6 +58,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
       - uses: actions/download-artifact@v3
         with:
           name: ${{ github.event.repository.name }}-${{ github.sha }}
