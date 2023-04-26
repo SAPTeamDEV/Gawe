@@ -64,5 +64,5 @@ jobs:
       - name: Deploy Github package
         run: |
           dotnet nuget add source --username SAPTeamDEV --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/SAPTeam/index.json"
-          dotnet nuget push -s github *.*nupkg
+          dotnet nuget push *.*nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
       
