@@ -3,11 +3,21 @@ name: Gawe for .NET
 on:
   workflow_call:
     inputs:
+      nuget-deploy:
+        description: Deploy generated packages to the NuGet galley
+        type: boolean
+        default: true
+        required: false
       trusted-user:
           description: Name of the trusted account for auto-merge the PRs
           type: string
           required: false
           default: Ali-p1986
+
+    secrets:
+      NUGET_API_KEY:
+          description: Nuget gallery API key
+          required: false
 
 jobs:
   dotnet:
@@ -36,10 +46,10 @@ jobs:
         run: dotnet test --configuration ${{ matrix.configuration }} --no-restore --verbosity normal
       # Initialize for CD
       - name: Create NuGet package
-        if: github.event_name == 'push' && matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release'
+        if: matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release' && (github.event_name == 'push' || github.event_name == 'tag')
         run: dotnet pack --configuration ${{ matrix.configuration }} --no-build -o __out__
       - name: Upload build artifact
-        if: github.event_name == 'push' && matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release'
+        if: matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release' && (github.event_name == 'push' || github.event_name == 'tag')
         uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.repository.name }}-${{ github.sha }}
@@ -62,7 +72,7 @@ jobs:
     name: Deploy NuGet package
     needs: [dotnet]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'tag'
     steps:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
@@ -71,8 +81,15 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: ${{ github.event.repository.name }}-${{ github.sha }}
-      - name: Deploy Github package
+      - name: Deploy to Github packages
+        if: github.event_name == 'push'
         run: |
           dotnet nuget add source --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
           dotnet nuget push *.*nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
+        shell: bash
+      - name: Deploy to NuGet gallery
+        if: github.event_name == 'tag'
+        run: dotnet nuget push *.*nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source "nuget.org"
+        shell: bash
+        
       
