@@ -2,6 +2,12 @@ name: Gawe for .NET
 
 on:
   workflow_call:
+    inputs:
+      trusted-user:
+          description: Name of the trusted account for auto-merge the PRs
+          type: string
+          required: false
+          default: Ali-p1986
 
 jobs:
   dotnet:
@@ -44,13 +50,13 @@ jobs:
     name: Auto-merge pull requests
     needs: [dotnet]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && (github.actor == 'Ali-p1986' || github.actor == github.repository_owner || github.actor == 'dependabot[bot]')
+    if: github.event_name == 'pull_request' && (github.actor == inputs.trusted-user || github.actor == github.repository_owner || github.actor == 'dependabot[bot]')
     env:
       PR_URL: ${{github.event.pull_request.html_url}}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Automatically merge the trusted PR from ${{ github.actor }}
-        run: gh pr merge --auto -d -r "$PR_URL"
+        run: gh pr merge -d -r "$PR_URL"
 
   deploy:
     name: Deploy NuGet package
