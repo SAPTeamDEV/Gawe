@@ -71,13 +71,13 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Automatically merge the trusted PR from ${{ github.actor }}
-        run: gh pr merge --auto --merge -d "$PR_URL"
+        run: gh pr merge --auto -r -d "$PR_URL"
 
   deploy:
     name: Deploy NuGet package
     needs: [dotnet]
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' || (github.event.pull_request.merged)
     steps:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
