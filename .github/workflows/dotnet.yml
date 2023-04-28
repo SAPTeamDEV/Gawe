@@ -28,11 +28,11 @@ jobs:
   dotnet:
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows, ubuntu, macos]
         configuration: [Debug, Release]
 
     name: Build ${{ matrix.configuration }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -51,10 +51,10 @@ jobs:
         run: dotnet test --configuration ${{ matrix.configuration }} --no-restore --verbosity normal
       # Initialize for CD
       - name: Create NuGet package
-        if: matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
+        if: matrix.os == 'ubuntu' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
         run: dotnet pack --configuration ${{ matrix.configuration }} --no-build -o __out__
       - name: Upload build artifact
-        if: matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
+        if: matrix.os == 'ubuntu' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.repository.name }}-${{ github.sha }}
