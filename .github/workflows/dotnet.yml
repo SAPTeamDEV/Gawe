@@ -62,7 +62,7 @@ jobs:
             __out__/*.*nupkg
         
   merge:
-    name: Auto-merge pull requests
+    name: Auto-merge trusted PRs
     needs: [dotnet]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' && (github.actor == inputs.trusted-user || github.actor == github.repository_owner || github.actor == 'dependabot[bot]')
@@ -77,7 +77,7 @@ jobs:
     name: Deploy NuGet package
     needs: [dotnet]
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || (github.event.pull_request.merged)
+    if: github.event_name != 'pull_request'
     steps:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
