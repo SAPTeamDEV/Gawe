@@ -144,7 +144,7 @@ jobs:
           path: packs
       - name: Check artifacts
         run: |
-          [ -d packs ] && [ -f packs/*.*nupkg ] && echo "DO_DEPLOY==false" >> "$GITHUB_ENV"
+          [ -d packs ] && [ -f packs/*.*nupkg ] || echo "DO_DEPLOY==false" >> "$GITHUB_ENV"
       - name: Deploy to Github packages
         if: env.DO_DEPLOY == 'true'
         continue-on-error: true
