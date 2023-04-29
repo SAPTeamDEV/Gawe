@@ -12,12 +12,12 @@ on:
         description: Solution or project file(s) to test
         required: false
         type: string
-        default: '*.sln'
+        default: ${{ inputs.build-path }}
       deploy-path:
         description: Solution or project file(s) to create and deploy packages
         required: false
         type: string
-        default: '*.sln'
+        default: ${{ inputs.build-path }}
       nuget-deploy:
         description: Deploy generated packages to the NuGet galley
         type: boolean
