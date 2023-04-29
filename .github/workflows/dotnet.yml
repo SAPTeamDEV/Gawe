@@ -3,6 +3,21 @@ name: Gawe for .NET
 on:
   workflow_call:
     inputs:
+      build-path:
+        description: Solution or project file(s) to build
+        required: false
+        type: string
+        default: '*.sln'
+      test-path:
+        description: Solution or project file(s) to test
+        required: false
+        type: string
+        default: '*.sln'
+      deploy-path:
+        description: Solution or project file(s) to create and deploy packages
+        required: false
+        type: string
+        default: '*.sln'
       nuget-deploy:
         description: Deploy generated packages to the NuGet galley
         type: boolean
@@ -46,13 +61,40 @@ jobs:
       - name: Install dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build --configuration ${{ matrix.configuration }} --no-restore
+        run: |
+          for TARGET in ${{ inputs.build-path }}
+          do
+            dotnet build $TARGET --configuration ${{ matrix.configuration }} --no-restore
+            if [ $? != 0 ]
+            then
+              exit 1
+            fi
+          done
+        shell: bash
       - name: Test
-        run: dotnet test --configuration ${{ matrix.configuration }} --no-restore --verbosity normal
-      # Initialize for CD
+        run: |
+          for TARGET in ${{ inputs.test-path }}
+          do
+            dotnet test $TARGET --configuration ${{ matrix.configuration }} --no-restore --verbosity normal
+            if [ $? != 0 ]
+            then
+              exit 1
+            fi
+          done
+        shell: bash
+      # Initialize CD
       - name: Create NuGet package
         if: matrix.os == 'ubuntu' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
-        run: dotnet pack --configuration ${{ matrix.configuration }} --no-build -o __out__
+        run: |
+          for TARGET in ${{ inputs.deploy-path }}
+            do
+            dotnet pack $TARGET --configuration ${{ matrix.configuration }} --no-build -o __out__
+              if [ $? != 0 ]
+              then
+                exit 1
+              fi
+            done
+        shell: bash
       - name: Upload build artifact
         if: matrix.os == 'ubuntu' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
