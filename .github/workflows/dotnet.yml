@@ -18,6 +18,11 @@ on:
         required: false
         type: string
         default: '*.sln'
+      deploy:
+        description: Create and publish packages to github and NuGet galley
+        required: false
+        type: boolean
+        default: true
       nuget-deploy:
         description: Deploy generated packages to the NuGet galley
         type: boolean
@@ -84,7 +89,7 @@ jobs:
         shell: bash
       # Initialize CD
       - name: Create NuGet package
-        if: matrix.os == 'ubuntu' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
+        if: inputs.deploy && matrix.os == 'ubuntu' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
         run: |
           for TARGET in ${{ inputs.deploy-path }}
             do
@@ -96,7 +101,7 @@ jobs:
             done
         shell: bash
       - name: Upload build artifact
-        if: matrix.os == 'ubuntu' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
+        if: inputs.deploy && matrix.os == 'ubuntu' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.repository.name }}-${{ github.sha }}
@@ -119,7 +124,7 @@ jobs:
     name: Deploy NuGet package
     needs: [dotnet]
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
+    if: inputs.deploy && github.event_name != 'pull_request'
     steps:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
@@ -132,12 +137,20 @@ jobs:
         continue-on-error: true
         run: |
           dotnet nuget add source --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-          dotnet nuget push *.*nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicate
+
+          for TARGET in *.*nupkg
+          do
+            dotnet nuget push $TARGET --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicate
+          done
         shell: bash
       - name: Deploy to NuGet gallery
         if: inputs.nuget-deploy && github.ref_name == inputs.nuget-deploy-branch
         continue-on-error: true
-        run: dotnet nuget push *.*nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source "nuget.org" --skip-duplicate
+        run: |
+          for TARGET in *.*nupkg
+          do
+          dotnet nuget push $TARGET --api-key ${{ secrets.NUGET_API_KEY }} --source "nuget.org" --skip-duplicate
+          done
         shell: bash
         
       
