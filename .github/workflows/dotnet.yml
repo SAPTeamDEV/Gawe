@@ -137,9 +137,10 @@ jobs:
         with:
           dotnet-version: 6.0.x
       - uses: actions/download-artifact@v3
+        continue-on-error: true
         with:
           name: ${{ github.event.repository.name }}-${{ github.sha }}
-      - if: failure()
+      - if: success() == 'false' && failure() == 'false'
         run: echo "DO_DEPLOY==false" >> "$GITHUB_ENV"
       - name: Deploy to Github packages
         if: env.DO_DEPLOY == 'true'
