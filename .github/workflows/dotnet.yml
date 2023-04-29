@@ -136,19 +136,22 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x
-      - uses: actions/download-artifact@v3
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
         continue-on-error: true
         with:
           name: ${{ github.event.repository.name }}-${{ github.sha }}
-      - if: success() == 'false' && failure() == 'false'
-        run: echo "DO_DEPLOY==false" >> "$GITHUB_ENV"
+          path: packs
+      - name: Check artifacts
+        run: |
+          [ -d packs ] && [ -f packs/*.*nupkg ] && echo "DO_DEPLOY==false" >> "$GITHUB_ENV"
       - name: Deploy to Github packages
         if: env.DO_DEPLOY == 'true'
         continue-on-error: true
         run: |
           dotnet nuget add source --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
-          for TARGET in *.*nupkg
+          for TARGET in packs/*.*nupkg
           do
             dotnet nuget push $TARGET --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicate
           done
@@ -157,7 +160,7 @@ jobs:
         if: env.DO_DEPLOY == 'true' && inputs.nuget-deploy && github.ref_name == inputs.nuget-deploy-branch
         continue-on-error: true
         run: |
-          for TARGET in *.*nupkg
+          for TARGET in packs/*.*nupkg
           do
           dotnet nuget push $TARGET --api-key ${{ secrets.NUGET_API_KEY }} --source "nuget.org" --skip-duplicate
           done
