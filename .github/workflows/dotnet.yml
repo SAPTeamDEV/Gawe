@@ -44,6 +44,10 @@ on:
           description: Nuget gallery API key
           required: false
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   dotnet:
     strategy:
@@ -125,6 +129,8 @@ jobs:
     needs: [dotnet]
     runs-on: ubuntu-latest
     if: inputs.deploy && github.event_name != 'pull_request'
+    env:
+      DO_DEPLOY: 'true'
     steps:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
@@ -133,7 +139,10 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: ${{ github.event.repository.name }}-${{ github.sha }}
+      - if: failure()
+        run: echo "DO_DEPLOY==false" >> "$GITHUB_ENV"
       - name: Deploy to Github packages
+        if: env.DO_DEPLOY == 'true'
         continue-on-error: true
         run: |
           dotnet nuget add source --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
@@ -144,7 +153,7 @@ jobs:
           done
         shell: bash
       - name: Deploy to NuGet gallery
-        if: inputs.nuget-deploy && github.ref_name == inputs.nuget-deploy-branch
+        if: env.DO_DEPLOY == 'true' && inputs.nuget-deploy && github.ref_name == inputs.nuget-deploy-branch
         continue-on-error: true
         run: |
           for TARGET in *.*nupkg
