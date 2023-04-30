@@ -70,7 +70,10 @@ jobs:
       - name: Install dependencies
         run: |
           dotnet restore
-          [ ${{ github.event.repository.name }} == AndroCtrl.Adb ] && [ ${{ matrix.os }} == macos ] && brew install mono-libgdiplus
+          if [ ${{ github.event.repository.name }} == AndroCtrl.Adb ] && [ ${{ matrix.os }} == macos ]
+          then
+            brew install mono-libgdiplus
+          fi
       - name: Build
         run: |
           for TARGET in ${{ inputs.build-path }}
