@@ -144,7 +144,7 @@ jobs:
         run: |
           for TARGET in packs/*.*nupkg
           do
-            dotnet nuget push $TARGET --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
+            dotnet nuget push $TARGET --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate || continue
           done
         shell: bash
       - name: Deploy to NuGet gallery
@@ -153,7 +153,7 @@ jobs:
         run: |
           for TARGET in packs/*.*nupkg
           do
-          dotnet nuget push $TARGET --api-key ${{ secrets.NUGET_API_KEY }} --source "nuget.org" --skip-duplicate
+          dotnet nuget push $TARGET --api-key ${{ secrets.NUGET_API_KEY }} --source "nuget.org" --skip-duplicate || continue
           done
         shell: bash
         
