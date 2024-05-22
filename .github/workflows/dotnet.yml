@@ -60,6 +60,8 @@ jobs:
 
     name: Build ${{ matrix.configuration }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}-latest
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     steps:
       - uses: actions/checkout@v3
