@@ -43,6 +43,9 @@ on:
       NUGET_API_KEY:
           description: Nuget gallery API key
           required: false
+      CODECOV_TOKEN:
+        description: Codecov Token
+        required: false
 
 defaults:
   run:
@@ -85,9 +88,22 @@ jobs:
         run: |
           for TARGET in ${{ inputs.test-path }}
           do
-            dotnet test $TARGET --configuration ${{ matrix.configuration }} --no-restore --verbosity normal
+            dotnet test $TARGET --configuration ${{ matrix.configuration }} --no-restore --verbosity normal --collect:"XPlat Code Coverage" --logger trx
           done
         shell: bash
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
+        if: always()
+        with:
+          files: |
+            **/TestResults/*.trx
+
+      - name: Codecov
+        uses: codecov/codecov-action@v4
+        if: env.CODECOV_TOKEN != ''
+        env:
+          CODECOV_TOKEN: ${{ env.CODECOV_TOKEN }}
+  
       # Initialize CD
       - name: Create NuGet package
         if: inputs.deploy && matrix.os == 'ubuntu' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
