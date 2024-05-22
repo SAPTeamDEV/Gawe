@@ -94,8 +94,8 @@ jobs:
           done
         shell: bash
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/windows@v2
-        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: matrix.os == 'ubuntu' && matrix.configuration == 'Release'
         with:
           files: |
             **/TestResults/*.trx
