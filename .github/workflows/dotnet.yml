@@ -102,7 +102,7 @@ jobs:
 
       - name: Codecov
         uses: codecov/codecov-action@v4
-        if: env.CODECOV_TOKEN != ''
+        if: env.CODECOV_TOKEN != '' && matrix.os == 'ubuntu' && matrix.configuration == 'Release'
         env:
           CODECOV_TOKEN: ${{ env.CODECOV_TOKEN }}
   
