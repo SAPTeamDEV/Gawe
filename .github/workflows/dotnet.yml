@@ -121,7 +121,7 @@ jobs:
         if: inputs.deploy && matrix.os == 'ubuntu' && matrix.configuration == 'Release' && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-Packages-${{ github.sha }}
           path: |
             __out__/*.*nupkg
         
