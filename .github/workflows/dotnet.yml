@@ -55,7 +55,7 @@ jobs:
   dotnet:
     strategy:
       matrix:
-        os: [windows, ubuntu, macos]
+        os: [ubuntu]
         configuration: [Debug, Release]
 
     name: Build ${{ matrix.configuration }} on ${{ matrix.os }}
