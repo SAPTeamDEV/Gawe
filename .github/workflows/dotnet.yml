@@ -165,7 +165,7 @@ jobs:
         if: env.DO_DEPLOY == 'true'
         continue-on-error: true
         run: |
-          for TARGET in packs/*.*nupkg
+          for TARGET in packs/*.nupkg
           do
             dotnet nuget push $TARGET --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate || continue
           done
@@ -174,7 +174,7 @@ jobs:
         if: env.DO_DEPLOY == 'true' && inputs.nuget-deploy && github.ref_name == inputs.nuget-deploy-branch
         continue-on-error: true
         run: |
-          for TARGET in packs/*.*nupkg
+          for TARGET in packs/*.nupkg
           do
           dotnet nuget push $TARGET --api-key ${{ secrets.NUGET_API_KEY }} --source "nuget.org" --skip-duplicate || continue
           done
